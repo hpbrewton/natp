@@ -34,6 +34,14 @@ vec_grow(vector_t *vec) {
   debug_int(vec);
 }
 
+int 
+vec_get_void(vector_t *vec, int index, void *data) {
+  if (index < 0 || index >= vec->used)
+    return -1;
+  memcpy(&vec->data[index*vec->part], data, vec->part);
+  return 0;
+}
+
 void
 vec_push_void(vector_t *vec, void *data) {
   if (0 == vec->unused)
@@ -65,13 +73,13 @@ debug_int(vector_t *vec) {
 }
 
 
-int
-main() {
-  vector_t v;
-  vec_mk(&v, sizeof(int));
-  int seven = 7;
-  vec_push(&v, &seven);
-  vec_push(&v, &seven);
-  vec_push(&v, &seven);  vec_push(&v, &seven);
-  debug_int(&v);
-}
+// int
+// main() {
+//   vector_t v;
+//   vec_mk(&v, sizeof(int));
+//   int seven = 7;
+//   vec_push(&v, &seven);
+//   vec_push(&v, &seven);
+//   vec_push(&v, &seven);  vec_push(&v, &seven);
+//   debug_int(&v);
+// }

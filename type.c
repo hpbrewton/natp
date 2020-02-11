@@ -1,4 +1,6 @@
 #include<stdio.h>
+#include<stdlib.h>
+#include"vector.h"
 
 typedef enum {
     function, 
@@ -42,22 +44,40 @@ substitute(type_t *t, int vno, type_t *sub) {
     }
 }
 
-void 
-unify(vec_t rules) {
+int 
+unify(vector_t *rules) {
     while (!vec_empty(rules)) {
-        type_t **rule = (type_t**) pop(rules);
+        type_t **rule;
+        vec_pop(rules, &rule);
         if ((rule[0]->flavor == rule[1]->flavor) && (rule[0]->data == rule[1]->data)) {
             continue;
-        } else if { (rule[0]->flavor == variable){
-            for (int i = 0; i < vec_len(rules); i++) 
-                substitute(get(rules, i), rule[0]->data, rule[1]);
+        } else if (rule[0]->flavor == variable){
+            for (int i = 0; i < vec_len(rules); i++) {
+                type_t **curr_rule;
+                vec_get(rules, i, &curr_rule);
+                substitute(curr_rule[0], rule[0]->data, rule[1]);
+                substitute(curr_rule[1], rule[0]->data, rule[1]);
+            }
         } else if (rule[1]->flavor == variable) {
-            for (int i = 0; i < vec_len(rules); i++)
-                substitute(get(rules, i), rule[1]->data, rule[0]);
-        } else  {
-            
+            for (int i = 0; i < vec_len(rules); i++) {
+                type_t **curr_rule;
+                vec_get(rules, i, &curr_rule);
+                substitute(curr_rule[0], rule[1]->data, rule[0]);
+                substitute(curr_rule[1], rule[1]->data, rule[0]);
+            }
+        } else if (rule[0]->flavor == rule[1]->flavor && rule[0]->flavor != variable) {
+            type_t **new_rules = malloc(sizeof(type_t*)*4);
+            new_rules[0] = (rule[0]->children)[0];
+            new_rules[1] = (rule[1]->children)[0];
+            new_rules[2] = (rule[0]->children)[1];
+            new_rules[3] = (rule[1]->children)[1];
+            vec_push(rules, new_rules);
+            vec_push(rules, &new_rules[2]);
+        } else {
+            return -1;
         }
     }
+    return 0;
 }
 
 void
@@ -101,14 +121,23 @@ main(int argc, char *argv[])
     type_t b; 
     type_t c;
     type_t f;
+    type_t g;
     mk_type(&a, variable, 1, NULL);
     mk_type(&b, variable, 2, NULL);
     type_t *bptr = &b;
     mk_type(&c, stream, 1, &bptr);
     type_t *ch[] = {&a, &c};
     mk_type(&f, function, 1, ch);
-    char *str;
-    show_type(&str, &f);
-    printf("%s\n", str);
+    type_t *dh[] = {&c, &c};
+    mk_type(&g, function, 1, dh);
+    type_t *rule[2] = {&f, &g};
+    char *fstr, *gstr;
+    show_type(&fstr, &f);
+    show_type(&gstr, &g);
+    vector_t v;
+    vec_mk(&v, sizeof(type_t **));
+    vec_push(&v, rule);
+    int unifies = unify(&v);
+    printf("%s %sunifies with %s\n", fstr, (unifies ? "" : "doesn't "), gstr);
 }
 
