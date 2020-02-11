@@ -21,26 +21,42 @@ mk_type(type_t *t, flavor_e f, int data, type_t **children) {
     t->children = children;
 }
 
-void
+int
 substitute(type_t *t, int vno, type_t *sub) {
     type_t **kids = t->children;
-    switch (f) {
+    switch (t->flavor) {
     case function: 
     case map:
-    substitute(kids[1], vno, sub);
     case container:
-    sub
+    if (substitute(kids[1], vno, sub)) {
+        kids[1] = sub;
+    }
+    case stream:
+    if (substitute(kids[0], vno, sub)) {
+        kids[0] = sub;
+    }
+    return 0;
+    break;
+    case variable:
+    return (t->data == vno);
     }
 }
 
-int 
-arity(flavor_e f) {
-    switch(f) {
-    case function: return 2; break;
-    case map: return 2; break;
-    case container: return 1; break;
-    case stream: return 1; break;
-    case variable: return 0; break;
+void 
+unify(vec_t rules) {
+    while (!vec_empty(rules)) {
+        type_t **rule = (type_t**) pop(rules);
+        if ((rule[0]->flavor == rule[1]->flavor) && (rule[0]->data == rule[1]->data)) {
+            continue;
+        } else if { (rule[0]->flavor == variable){
+            for (int i = 0; i < vec_len(rules); i++) 
+                substitute(get(rules, i), rule[0]->data, rule[1]);
+        } else if (rule[1]->flavor == variable) {
+            for (int i = 0; i < vec_len(rules); i++)
+                substitute(get(rules, i), rule[1]->data, rule[0]);
+        } else  {
+            
+        }
     }
 }
 
@@ -54,23 +70,24 @@ show_type(char **ret, type_t *t) {
         ;
         show_type(&l, (t->children)[0]);
         show_type(&r, (t->children)[1]);
-        asprintf(ret, "%s -> %s", l, r);
+        asprintf(ret, "(%s -> %s)", l, r);
         break;
     case map:
         ;
         show_type(&l, (t->children)[0]);
         show_type(&r, (t->children)[1]);
-        asprintf(ret, "[%s]%s", l, r);
+        asprintf(ret, "([%s]%s)", l, r);
         break;
     case container:
         ;
         show_type(&l, (t->children)[0]);
-        asprintf(ret, "%d[%s]", t->data, l);
+        show_type(&r, (t->children)[1]);
+        asprintf(ret, "(%s %s)", l, r);
         break;
     case stream:
         ;
         show_type(&l, (t->children)[0]);
-        asprintf(ret, "stream %s", l);
+        asprintf(ret, "(stream %s)", l);
         break;
     case variable:
         asprintf(ret, "v%d", t->data);
