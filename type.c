@@ -3,8 +3,8 @@
 #include"vector.h"
 
 typedef enum {
-    function, 
     variable, 
+    function, 
     container, 
     map, 
     stream
@@ -47,7 +47,7 @@ substitute(type_t *t, int vno, type_t *sub) {
 int 
 unify(vector_t *rules) {
     while (!vec_empty(rules)) {
-        type_t **rule;
+        type_t *rule[2];
         vec_pop(rules, &rule);
         if ((rule[0]->flavor == rule[1]->flavor) && (rule[0]->data == rule[1]->data)) {
             continue;
@@ -122,21 +122,29 @@ main(int argc, char *argv[])
     type_t c;
     type_t f;
     type_t g;
+    type_t h; 
+    type_t i; 
+    mk_type(&h, variable, 3, NULL);
+    mk_type(&i, variable, 4, NULL);
+    type_t j;
+    type_t *eh[] = {&h, &i};
+    mk_type(&j, function, 1, eh);
+
     mk_type(&a, variable, 1, NULL);
     mk_type(&b, variable, 2, NULL);
     type_t *bptr = &b;
     mk_type(&c, stream, 1, &bptr);
-    type_t *ch[] = {&a, &c};
+    type_t *ch[] = {&b, &c};
     mk_type(&f, function, 1, ch);
-    type_t *dh[] = {&c, &c};
+    type_t *dh[] = {&f, &c};
     mk_type(&g, function, 1, dh);
     type_t *rule[2] = {&f, &g};
     char *fstr, *gstr;
     show_type(&fstr, &f);
     show_type(&gstr, &g);
     vector_t v;
-    vec_mk(&v, sizeof(type_t **));
-    vec_push(&v, rule);
+    vec_mk(&v, sizeof(rule));
+    vec_push(&v, &rule);
     int unifies = unify(&v);
     printf("%s %sunifies with %s\n", fstr, (unifies ? "" : "doesn't "), gstr);
 }

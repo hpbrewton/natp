@@ -46,7 +46,7 @@ void
 vec_push_void(vector_t *vec, void *data) {
   if (0 == vec->unused)
     vec_grow(vec);
-  memcpy(&vec->data[vec->used*vec->part], data, vec->part);
+  memcpy(&(vec->data[vec->used*vec->part]), data, vec->part);
   ++vec->used;
   --vec->unused;
 }
@@ -55,9 +55,9 @@ int
 vec_pop_void(vector_t *vec, void *data){
   if (0 == vec->used)
     return -1;
-  memcpy(data, &vec->data[vec->used*vec->part], vec->part);
   --vec->used;
   ++vec->unused;
+  memcpy(data, &(vec->data[vec->used*vec->part]), vec->part);
   return 0;
 }
 
