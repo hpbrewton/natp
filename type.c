@@ -15,6 +15,7 @@ typedef struct _type_t {
     struct _type_t **children; //vector of types
     int data;
 } type_t;
+typedef type_t* rule_t [2];
 
 void
 mk_type(type_t *t, flavor_e f, int data, type_t **children) {
@@ -47,7 +48,7 @@ substitute(type_t *t, int vno, type_t *sub) {
 int 
 unify(vector_t *rules) {
     while (!vec_empty(rules)) {
-        type_t *rule[2];
+        rule_t rule;
         vec_pop(rules, &rule);
         if ((rule[0]->flavor == rule[1]->flavor) && (rule[0]->data == rule[1]->data)) {
             continue;
